@@ -5,7 +5,6 @@ from tensorflow.keras.models import load_model
 
 st.set_page_config(
     page_title="Deepfake Detection",
-    page_icon="🕵️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -60,7 +59,7 @@ def preprocess_image(image):
     return image
 
 def main():
-    st.title("🕵️ Deepfake Image Detection")
+    st.title("Deepfake Image Detection")
     st.markdown("Upload an image to check if it's authentic or a deepfake.")
 
     col1, col2 = st.columns([1, 1], gap="large")
@@ -88,26 +87,27 @@ def main():
             with st.spinner("Analyzing image..."):
                 try:
                     processed_image = preprocess_image(image)
-                    prediction = model.predict(processed_image)[0]
-                    confidence = float(np.max(prediction))
-                    label = int(np.argmax(prediction))
+                    prediction = model.predict(processed_image)[0]  # single value output
+                    fake_confidence = float(prediction)
+                    threshold = 0.5
 
-                    if label == 0:
-                        st.markdown(f"""
-                            <div class="prediction-box real">
-                                <h3>Authentic Image</h3>
-                                <p>Confidence: {confidence:.2%}</p>
-                            </div>
-                            """, unsafe_allow_html=True)
-                        st.success("This image appears to be authentic.")
-                    else:
+                    if fake_confidence > threshold:
                         st.markdown(f"""
                             <div class="prediction-box fake">
                                 <h3>Deepfake Detected!</h3>
-                                <p>Confidence: {confidence:.2%}</p>
+                                <p>Confidence: {fake_confidence:.2%}</p>
                             </div>
                             """, unsafe_allow_html=True)
                         st.error("Warning: This image may be a deepfake.")
+                    else:
+                        real_confidence = 1 - fake_confidence
+                        st.markdown(f"""
+                            <div class="prediction-box real">
+                                <h3>Authentic Image</h3>
+                                <p>Confidence: {real_confidence:.2%}</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        st.success("This image appears to be authentic.")
 
                     with st.expander("What does this result mean?"):
                         st.write("""
@@ -147,7 +147,7 @@ def main():
         st.markdown("## Model Information")
         st.write("""
         - Model: DeepFake Detection (Keras)
-        - Accuracy: ~90%
+        - Accuracy: ~80%
         """)
 
 if __name__ == "__main__":
